@@ -8,7 +8,7 @@
    */
   const createCRUDObserver = options => {
     const backUpModifier = result => result;
-    const { mainRedux, reduxPath, get, getOne, create, update, remove, modifier = backUpModifier } = options;
+    const { mainRedux, reduxPath, create = {}, update = {}, remove = {}, modifier = backUpModifier } = options;
     
     const getEpic = (action$, store, { Api }) => 
       action$
