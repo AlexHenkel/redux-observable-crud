@@ -106,5 +106,8 @@ This will be an array of Redux options to sync data in other redux that may cont
 `onSuccessActions.redux` (Required if past option is present)
 Redux file of the collection that needs to be synced
 
+`onSuccessActions.pathToUpdate` (Optional)
+As default, same `reduxPath` is used to look into provided redux file, but this can be overried with this option.
+
 `create.onSuccessActions.filter` (Optional)
 Filter to decide if new object should be included to other Redux file. For example, Country is a collection that contains networks; when a network is created, we should verify that network belongs to country in order to add new item.
