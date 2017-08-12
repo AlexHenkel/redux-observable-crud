@@ -4,9 +4,9 @@
   /**
    * Creates an observer epic ready to use with Redux
    * @param options Custom options for creating observer
-   * @param customObservers Array of custom observer functions
+   * @return {Object} On object with pure observables and epic
    */
-  const createCRUDObserver = (options, customObservers) => {
+  const createCRUDObserver = options => {
     const backUpModifier = result => result;
     const { mainRedux, reduxPath, get, getOne, create, update, remove, modifier = backUpModifier } = options;
     
