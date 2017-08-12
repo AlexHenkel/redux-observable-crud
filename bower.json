@@ -1,0 +1,17 @@
+{
+  "name": "reduxobserver-crudsauce",
+  "description": "Redux observer CRUD epics generator",
+  "main": "reduxobserver-crudsauce.html",
+  "authors": [
+    "Alejandro Henkel <alexh@kinedu.com>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

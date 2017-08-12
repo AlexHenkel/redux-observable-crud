@@ -1,0 +1,133 @@
+<script src="../../node_modules/rxjs/bundles/Rx.js"></script>
+<script src="../../node_modules/redux-observable/dist/redux-observable.js"></script>
+<script>
+  /**
+   * Creates an observer epic ready to use with Redux
+   * @param options Custom options for creating observer
+   * @param customObservers Array of custom observer functions
+   */
+  const createCRUDObserver = (options, customObservers) => {
+    const backUpModifier = result => result;
+    const { mainRedux, reduxPath, get, getOne, create, update, remove, modifier = backUpModifier } = options;
+    
+    const getEpic = (action$, store) => 
+      action$
+        .ofType(mainRedux.Types.getRequest)
+        .mergeMap(() => {
+          const items = store.getState()[reduxPath].get;
+          // Verify if is not the same that is stored
+          if (!items.error && items.results.length) {
+            return Promise.resolve(mainRedux.Creators.getSuccess(items.results))
+          }
+          return get.api()
+            .then(response => response.data.data)
+            .then(results => mainRedux.Creators.getSuccess(results))
+            .catch(error => mainRedux.Creators.getFailure(error))
+        });
+
+    const getOneEpic = (action$, store) => 
+      action$
+        .ofType(mainRedux.Types.getOneRequest)
+        .mergeMap(({ id }) => {
+          const item = store.getState()[reduxPath].getOne;
+          // Verify if is not the same that is stored
+          if (!item.error && item.id == id) {
+            return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item))
+          }
+          return getOne.api(id)
+            .then(response => response.data.data)
+            .then(result => mainRedux.Creators.getOneSuccess(id, modifier(result)))
+            .catch(error => mainRedux.Creators.getOneFailure(error))
+        });
+
+    const createEpic = (action$, store) =>
+      action$.ofType(mainRedux.Types.createRequest)
+        .mergeMap(({ data }) => (
+          create.api(data)
+            .then(response => response.data.data)
+            .then(result => mainRedux.Creators.createSuccess(modifier(result)))
+            .catch(error => mainRedux.Creators.createFailure(error))
+        ));
+
+    const createSuccessEpic = (action$, store) =>
+      action$.ofType(mainRedux.Types.createSuccess)
+        .mergeMap(({ result }) => {
+          const { onSuccessActions = [] } =  create;
+          const backUpFilter = () => true;
+          const actions = onSuccessActions.map(item => {
+            const { redux, pathToUpdate, filter = backUpFilter } = item;
+            return redux.Creators.getOneCreateFrom(result, pathToUpdate, filter);
+          });
+          return Rx.Observable.from(actions);
+        });
+
+    const updateEpic = (action$, store) =>
+      action$.ofType(mainRedux.Types.updateRequest)
+        .mergeMap(({ id, data }) => (
+          update.api(id, data)
+            .then(response => response.data.data)
+            .then(result => mainRedux.Creators.updateSuccess(modifier(result)))
+            .catch(error => mainRedux.Creators.updateFailure(error))
+        ));
+
+    const updateSuccessEpic = (action$, store) =>
+      action$.ofType(mainRedux.Types.updateSuccess)
+        .mergeMap(({ result }) => {
+          const { onSuccessActions = [] } =  update;
+          const actions = onSuccessActions.map(item => {
+            const { redux, pathToUpdate } = item;
+            return redux.Creators.getOneUpdateFrom(result, pathToUpdate);
+          });
+          return Rx.Observable.from(actions);
+        });
+        
+    const removeEpic = (action$, store) =>
+      action$.ofType(mainRedux.Types.removeRequest)
+        .mergeMap(({ id }) => (
+          remove.api(id)
+            .then(response => response.data.data)
+            .then(result => mainRedux.Creators.removeSuccess())
+            .catch(error => mainRedux.Creators.removeFailure(error))
+        ));
+
+    const removeSuccessEpic = (action$, store) =>
+      action$.ofType(mainRedux.Types.removeSuccess)
+        .mergeMap(() => {
+          const { pending } = store.getState()[reduxPath].remove;
+          const { onSuccessActions = [] } =  remove;
+          const actions = onSuccessActions.map(item => {
+            const { redux, pathToUpdate } = item;
+            return redux.Creators.getOneRemoveFrom(pending, pathToUpdate);
+          });
+          return Rx.Observable.from(actions);
+        });
+
+    // Merge for testing
+    const observers = {
+      getEpic,
+      getOneEpic,
+      createEpic,
+      createSuccessEpic,
+      updateEpic,
+      updateSuccessEpic,
+      removeEpic,
+      removeSuccessEpic,
+    };
+
+    const epic = ReduxObservable.combineEpics(
+      getEpic,
+      getOneEpic,
+      createEpic,
+      createSuccessEpic,
+      updateEpic,
+      updateSuccessEpic,
+      removeEpic,
+      removeSuccessEpic,
+    );
+
+    return {
+      observers,
+      epic,
+    };
+  }
+</script>
