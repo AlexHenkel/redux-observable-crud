@@ -49,7 +49,6 @@
             toSearch = path.split('.').reduce((currVal, prop) => currVal[prop], toSearch);
             // Filter items by id
             const filtered = toSearch.filter(item => item.id === id);
-            console.log('filtered', filtered[0]);
             // Return get One action with found item
             if(filtered.length) {
               return Promise.resolve(mainRedux.Creators.getOneSuccess(id, modifier(filtered[0])));
