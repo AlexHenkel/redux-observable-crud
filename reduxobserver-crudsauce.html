@@ -39,6 +39,25 @@
             .then(result => mainRedux.Creators.getOneSuccess(id, modifier(result)))
             .catch(error => mainRedux.Creators.getOneFailure(error))
         });
+    
+    const getOneFromStateEpic = (action$, store) =>
+        action$
+          .ofType(mainRedux.Types.getOneFromState)
+          .mergeMap(({ id, path }) => {
+            let toSearch = store.getState();
+            // Get the selected path from store
+            toSearch = path.split('.').reduce((currVal, prop) => currVal[prop], toSearch);
+            // Filter items by id
+            const filtered = toSearch.filter(item => item.id === id);
+            console.log('filtered', filtered[0]);
+            // Return get One action with found item
+            if(filtered.length) {
+              return Promise.resolve(mainRedux.Creators.getOneSuccess(id, modifier(filtered[0])));
+            } else {
+              // Return error
+              return Promise.resolve(mainRedux.Creators.getOneFailure({ message: "Not found"}));
+            }
+          })
 
     const createEpic = (action$, store, { Api }) =>
       action$.ofType(mainRedux.Types.createRequest)
@@ -106,6 +125,7 @@
     const observers = {
       getEpic,
       getOneEpic,
+      getOneFromStateEpic,
       createEpic,
       createSuccessEpic,
       updateEpic,
@@ -117,6 +137,7 @@
     const epic = ReduxObservable.combineEpics(
       getEpic,
       getOneEpic,
+      getOneFromStateEpic,
       createEpic,
       createSuccessEpic,
       updateEpic,
