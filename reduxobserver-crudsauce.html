@@ -104,18 +104,17 @@
         .mergeMap(({ id }) => (
           Api[reduxPath].remove(id)
             .then(response => response.data.data)
-            .then(result => mainRedux.Creators.removeSuccess())
+            .then(result => mainRedux.Creators.removeSuccess(id))
             .catch(error => mainRedux.Creators.removeFailure(error))
         ));
 
     const removeSuccessEpic = (action$, store) =>
       action$.ofType(mainRedux.Types.removeSuccess)
-        .mergeMap(() => {
-          const { pending } = store.getState()[reduxPath].remove;
+        .mergeMap(({ id }) => {
           const { onSuccessActions = [] } =  remove;
           const actions = onSuccessActions.map(item => {
             const { redux, pathToUpdate = reduxPath } = item;
-            return redux.Creators.getOneRemoveFrom(pending, pathToUpdate);
+            return redux.Creators.getOneRemoveFrom(id, pathToUpdate);
           });
           return Rx.Observable.from(actions);
         });
