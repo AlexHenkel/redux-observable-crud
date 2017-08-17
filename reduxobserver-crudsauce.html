@@ -13,10 +13,10 @@
     const getEpic = (action$, store, { Api }) => 
       action$
         .ofType(mainRedux.Types.getRequest)
-        .mergeMap(() => {
+        .mergeMap(({ force }) => {
           const items = store.getState()[reduxPath].get;
           // Verify if is not the same that is stored
-          if (!items.error && items.results.length) {
+          if (!force && !items.error && items.results.length) {
             return Promise.resolve(mainRedux.Creators.getSuccess(items.results))
           }
           return Api[reduxPath].get()
@@ -28,10 +28,10 @@
     const getOneEpic = (action$, store) => 
       action$
         .ofType(mainRedux.Types.getOneRequest)
-        .mergeMap(({ id }) => {
+        .mergeMap(({ id, force }) => {
           const item = store.getState()[reduxPath].getOne;
           // Verify if is not the same that is stored
-          if (!item.error && item.id == id) {
+          if (!force && !item.error && item.id == id) {
             return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item))
           }
           return Api[reduxPath].getOne(id)
