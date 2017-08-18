@@ -43,7 +43,7 @@
     const getOneFromStateEpic = (action$, store) =>
         action$
           .ofType(mainRedux.Types.getOneFromState)
-          .mergeMap(({ id, path }) => {
+          .mergeMap(({ id, path, noResolve }) => {
             let toSearch = store.getState();
             // Get the selected path from store
             toSearch = path.split('.').reduce((currVal, prop) => currVal[prop], toSearch);
@@ -51,7 +51,7 @@
             const filtered = toSearch.filter(item => item.id === id);
             // Return get One action with found item
             if(filtered.length) {
-              return Promise.resolve(mainRedux.Creators.getOneSuccess(id, modifier(filtered[0])));
+              return Promise.resolve(mainRedux.Creators.getOneSuccess(id, modifier(filtered[0]), noResolve));
             } else {
               // Return error
               return Promise.resolve(mainRedux.Creators.getOneFailure({ message: "Not found"}));
