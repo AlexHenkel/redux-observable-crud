@@ -1,3 +1,4 @@
+import R from 'ramda'
 
 /**
  * Creates an observer epic ready to use with Redux
