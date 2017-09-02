@@ -1,6 +1,7 @@
 import R from 'ramda';
 import { combineEpics } from 'redux-observable';
 import { Observable } from 'rxjs/Observable';
+import 'rxjs';
 
 /**
  * Creates an observable epic ready to use with Redux
@@ -132,6 +133,8 @@ export default options => {
     removeEpic,
     removeSuccessEpic,
   };
+
+  console.log(observables, options, combineEpics);
 
   const epic = combineEpics(
     getEpic,
