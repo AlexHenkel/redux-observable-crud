@@ -134,8 +134,6 @@ export default options => {
     removeSuccessEpic,
   };
 
-  console.log(observables, options, combineEpics);
-
   const epic = combineEpics(
     getEpic,
     getOneEpic,
