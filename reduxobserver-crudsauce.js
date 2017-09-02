@@ -1,4 +1,6 @@
 import R from 'ramda'
+import { combineEpics } from 'redux-observable'
+import { Observable } from 'rxjs/Observable';
 
 /**
  * Creates an observer epic ready to use with Redux
@@ -75,7 +77,7 @@ export default options => {
           const { redux, pathToUpdate = reduxPath, filter = backUpFilter } = item;
           return redux.Creators.getOneCreateFrom(result, pathToUpdate, filter);
         });
-        return Rx.Observable.from(actions);
+        return Observable.from(actions);
       });
 
   const updateEpic = (action$, store, { Api }) =>
@@ -95,7 +97,7 @@ export default options => {
           const { redux, pathToUpdate = reduxPath } = item;
           return redux.Creators.getOneUpdateFrom(result, pathToUpdate);
         });
-        return Rx.Observable.from(actions);
+        return Observable.from(actions);
       });
       
   const removeEpic = (action$, store, { Api }) =>
@@ -115,7 +117,7 @@ export default options => {
           const { redux, pathToUpdate = reduxPath } = item;
           return redux.Creators.getOneRemoveFrom(id, pathToUpdate);
         });
-        return Rx.Observable.from(actions);
+        return Observable.from(actions);
       });
 
   // Merge for testing
@@ -131,7 +133,7 @@ export default options => {
     removeSuccessEpic,
   };
 
-  const epic = ReduxObservable.combineEpics(
+  const epic = combineEpics(
     getEpic,
     getOneEpic,
     getOneFromStateEpic,
