@@ -1,10 +1,10 @@
-import R from 'ramda'
-import { combineEpics } from 'redux-observable'
+import R from 'ramda';
+import { combineEpics } from 'redux-observable';
 import { Observable } from 'rxjs/Observable';
 
 /**
- * Creates an observer epic ready to use with Redux
- * @param options Custom options for creating observer
+ * Creates an observable epic ready to use with Redux
+ * @param options Custom options for creating observable
  * @return {Object} On object with pure observables and epic
  */
 export default options => {
@@ -121,7 +121,7 @@ export default options => {
       });
 
   // Merge for testing
-  const observers = {
+  const observables = {
     getEpic,
     getOneEpic,
     getOneFromStateEpic,
@@ -146,7 +146,7 @@ export default options => {
   );
 
   return {
-    observers,
+    observables,
     epic,
   };
 }
