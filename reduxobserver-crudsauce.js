@@ -27,7 +27,7 @@ export default options => {
           .catch(error => mainRedux.Creators.getFailure(error))
       });
 
-  const getOneEpic = (action$, store) => 
+  const getOneEpic = (action$, store, { Api }) => 
     action$
       .ofType(mainRedux.Types.getOneRequest)
       .mergeMap(({ id, force }) => {
