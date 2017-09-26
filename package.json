@@ -1,8 +1,8 @@
 {
-  "name": "reduxobserver-crudsauce",
+  "name": "redux-observable-crud",
   "version": "1.0.0",
   "main": "reduxobserver-crudsauce.js",
-  "repository": "https://henkel0@bitbucket.org/kinedu/reduxobserver-crudsauce.git",
+  "repository": "https://github.com/AlexHenkel/redux-observable-crud",
   "author": "<alehenkel17@gmail.com>",
   "license": "MIT",
   "dependencies": {
