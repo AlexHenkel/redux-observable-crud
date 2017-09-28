@@ -22,7 +22,7 @@ export default options => {
           return Promise.resolve(mainRedux.Creators.getSuccess(items.results))
         }
         return Api[reduxPath].get()
-          .then(response => response.data.data)
+          .then(response => response.data)
           .then(results => mainRedux.Creators.getSuccess(results))
           .catch(error => mainRedux.Creators.getFailure(error))
       });
@@ -37,7 +37,7 @@ export default options => {
           return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item))
         }
         return Api[reduxPath].getOne(id)
-          .then(response => response.data.data)
+          .then(response => response.data)
           .then(result => mainRedux.Creators.getOneSuccess(id, modifier(result)))
           .catch(error => mainRedux.Creators.getOneFailure(error))
       });
@@ -64,7 +64,7 @@ export default options => {
     action$.ofType(mainRedux.Types.createRequest)
       .mergeMap(({ data }) => (
         Api[reduxPath].create(data)
-          .then(response => response.data.data)
+          .then(response => response.data)
           .then(result => mainRedux.Creators.createSuccess(modifier(result)))
           .catch(error => mainRedux.Creators.createFailure(error))
       ));
@@ -85,7 +85,7 @@ export default options => {
     action$.ofType(mainRedux.Types.updateRequest)
       .mergeMap(({ id, data }) => (
         Api[reduxPath].update(id, data)
-          .then(response => response.data.data)
+          .then(response => response.data)
           .then(result => mainRedux.Creators.updateSuccess(modifier(result)))
           .catch(error => mainRedux.Creators.updateFailure(error))
       ));
@@ -105,7 +105,7 @@ export default options => {
     action$.ofType(mainRedux.Types.removeRequest)
       .mergeMap(({ id }) => (
         Api[reduxPath].remove(id)
-          .then(response => response.data.data)
+          .then(response => response.data)
           .then(result => mainRedux.Creators.removeSuccess(id))
           .catch(error => mainRedux.Creators.removeFailure(error))
       ));
