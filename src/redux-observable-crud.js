@@ -10,7 +10,24 @@ import 'rxjs';
  */
 export default options => {
   const backUpModifier = result => result;
-  const { mainRedux, reduxPath, create = {}, update = {}, remove = {}, modifier = backUpModifier } = options;
+  const generalDataHandler = response => response.data.data;
+  const {
+    mainRedux,
+    reduxPath,
+    create = {},
+    update = {},
+    remove = {},
+    modifier = backUpModifier,
+    dataHandlers = {},
+  } = options;
+
+  const {
+    get: getHandler = generalDataHandler,
+    getOne: getOneHandler = generalDataHandler,
+    create: createHandler = generalDataHandler,
+    update: updateHandler = generalDataHandler,
+    remove: removeHandler = generalDataHandler,
+  } = dataHandlers
   
   const getEpic = (action$, store, { Api }) => 
     action$
@@ -22,7 +39,7 @@ export default options => {
           return Promise.resolve(mainRedux.Creators.getSuccess(items.results))
         }
         return Api[reduxPath].get()
-          .then(response => response.data)
+          .then(getHandler)
           .then(results => mainRedux.Creators.getSuccess(results))
           .catch(error => mainRedux.Creators.getFailure(error))
       });
@@ -37,7 +54,7 @@ export default options => {
           return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item))
         }
         return Api[reduxPath].getOne(id)
-          .then(response => response.data)
+          .then(getOneHandler)
           .then(result => mainRedux.Creators.getOneSuccess(id, modifier(result)))
           .catch(error => mainRedux.Creators.getOneFailure(error))
       });
@@ -64,7 +81,7 @@ export default options => {
     action$.ofType(mainRedux.Types.createRequest)
       .mergeMap(({ data }) => (
         Api[reduxPath].create(data)
-          .then(response => response.data)
+          .then(createHandler)
           .then(result => mainRedux.Creators.createSuccess(modifier(result)))
           .catch(error => mainRedux.Creators.createFailure(error))
       ));
@@ -85,7 +102,7 @@ export default options => {
     action$.ofType(mainRedux.Types.updateRequest)
       .mergeMap(({ id, data }) => (
         Api[reduxPath].update(id, data)
-          .then(response => response.data)
+          .then(updateHandler)
           .then(result => mainRedux.Creators.updateSuccess(modifier(result)))
           .catch(error => mainRedux.Creators.updateFailure(error))
       ));
@@ -105,7 +122,7 @@ export default options => {
     action$.ofType(mainRedux.Types.removeRequest)
       .mergeMap(({ id }) => (
         Api[reduxPath].remove(id)
-          .then(response => response.data)
+          .then(removeHandler)
           .then(result => mainRedux.Creators.removeSuccess(id))
           .catch(error => mainRedux.Creators.removeFailure(error))
       ));

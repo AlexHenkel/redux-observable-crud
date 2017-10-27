@@ -1,35 +1,25 @@
 {
   "name": "redux-observable-crud",
   "version": "1.0.0",
-  "main": "lib/redux-observable-crud.js",
-  "repository": "https://github.com/AlexHenkel/redux-observable-crud",
+  "main": "dist/redux-observable-crud.js",
+  "scripts": {
+    "build": "npm run clean && npm run build:js",
+    "build:js": "babel src --presets babel-preset-env --out-dir dist",
+    "prepublish": "npm run build",
+    "clean": "rimraf dist"
+  },
+  "repository": "https://github.com/alexhenkel/redux-observable-crud.git",
   "author": "<alehenkel17@gmail.com>",
   "license": "MIT",
-  "scripts": {
-    "build": "npm run clean && npm run build:js && webpack",
-    "build:js": "babel src/ -d lib/",
-    "clean": "rimraf lib"
-  },
   "dependencies": {
     "ramda": "^0.24.1",
     "redux": "^3.7.2",
     "redux-observable": "^0.16.0",
-    "redux-observable-crud": "git+https://github.com/alexhenkel/redux-observable-crud.git",
     "rxjs": "^5.4.3"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.0",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-external-helpers": "^6.18.0",
-    "babel-plugin-transform-class-properties": "^0.2.1",
-    "babel-plugin-transform-object-assign": "^6.22.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-plugin-transform-replace-object-assign": "^0.2.1",
-    "babel-preset-env": "^1.6.0",
-    "babel-preset-stage-0": "^6.22.0",
-    "babel-register": "^6.26.0",
-    "np": "^2.16.0",
-    "rimraf": "^2.6.1",
-    "standard": "^10.0.1"
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "rimraf": "^2.6.1"
   }
 }

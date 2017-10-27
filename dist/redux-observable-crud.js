@@ -1,89 +1,18 @@
-module.exports =
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _ramda = __webpack_require__(1);
+var _ramda = require('ramda');
 
 var _ramda2 = _interopRequireDefault(_ramda);
 
-var _reduxObservable = __webpack_require__(2);
+var _reduxObservable = require('redux-observable');
 
-var _Observable = __webpack_require__(3);
+var _Observable = require('rxjs/Observable');
 
-__webpack_require__(4);
+require('rxjs');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -96,6 +25,9 @@ exports.default = function (options) {
   var backUpModifier = function backUpModifier(result) {
     return result;
   };
+  var generalDataHandler = function generalDataHandler(response) {
+    return response.data.data;
+  };
   var mainRedux = options.mainRedux,
       reduxPath = options.reduxPath,
       _options$create = options.create,
@@ -105,7 +37,19 @@ exports.default = function (options) {
       _options$remove = options.remove,
       remove = _options$remove === undefined ? {} : _options$remove,
       _options$modifier = options.modifier,
-      modifier = _options$modifier === undefined ? backUpModifier : _options$modifier;
+      modifier = _options$modifier === undefined ? backUpModifier : _options$modifier,
+      _options$dataHandlers = options.dataHandlers,
+      dataHandlers = _options$dataHandlers === undefined ? {} : _options$dataHandlers;
+  var _dataHandlers$get = dataHandlers.get,
+      getHandler = _dataHandlers$get === undefined ? generalDataHandler : _dataHandlers$get,
+      _dataHandlers$getOne = dataHandlers.getOne,
+      getOneHandler = _dataHandlers$getOne === undefined ? generalDataHandler : _dataHandlers$getOne,
+      _dataHandlers$create = dataHandlers.create,
+      createHandler = _dataHandlers$create === undefined ? generalDataHandler : _dataHandlers$create,
+      _dataHandlers$update = dataHandlers.update,
+      updateHandler = _dataHandlers$update === undefined ? generalDataHandler : _dataHandlers$update,
+      _dataHandlers$remove = dataHandlers.remove,
+      removeHandler = _dataHandlers$remove === undefined ? generalDataHandler : _dataHandlers$remove;
 
 
   var getEpic = function getEpic(action$, store, _ref) {
@@ -118,9 +62,7 @@ exports.default = function (options) {
       if (!force && !items.error && items.results.length) {
         return Promise.resolve(mainRedux.Creators.getSuccess(items.results));
       }
-      return Api[reduxPath].get().then(function (response) {
-        return response.data;
-      }).then(function (results) {
+      return Api[reduxPath].get().then(getHandler).then(function (results) {
         return mainRedux.Creators.getSuccess(results);
       }).catch(function (error) {
         return mainRedux.Creators.getFailure(error);
@@ -139,9 +81,7 @@ exports.default = function (options) {
       if (!force && !item.error && item.id == id) {
         return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item));
       }
-      return Api[reduxPath].getOne(id).then(function (response) {
-        return response.data;
-      }).then(function (result) {
+      return Api[reduxPath].getOne(id).then(getOneHandler).then(function (result) {
         return mainRedux.Creators.getOneSuccess(id, modifier(result));
       }).catch(function (error) {
         return mainRedux.Creators.getOneFailure(error);
@@ -178,9 +118,7 @@ exports.default = function (options) {
     var Api = _ref6.Api;
     return action$.ofType(mainRedux.Types.createRequest).mergeMap(function (_ref7) {
       var data = _ref7.data;
-      return Api[reduxPath].create(data).then(function (response) {
-        return response.data;
-      }).then(function (result) {
+      return Api[reduxPath].create(data).then(createHandler).then(function (result) {
         return mainRedux.Creators.createSuccess(modifier(result));
       }).catch(function (error) {
         return mainRedux.Creators.createFailure(error);
@@ -215,9 +153,7 @@ exports.default = function (options) {
     return action$.ofType(mainRedux.Types.updateRequest).mergeMap(function (_ref10) {
       var id = _ref10.id,
           data = _ref10.data;
-      return Api[reduxPath].update(id, data).then(function (response) {
-        return response.data;
-      }).then(function (result) {
+      return Api[reduxPath].update(id, data).then(updateHandler).then(function (result) {
         return mainRedux.Creators.updateSuccess(modifier(result));
       }).catch(function (error) {
         return mainRedux.Creators.updateFailure(error);
@@ -246,9 +182,7 @@ exports.default = function (options) {
     var Api = _ref12.Api;
     return action$.ofType(mainRedux.Types.removeRequest).mergeMap(function (_ref13) {
       var id = _ref13.id;
-      return Api[reduxPath].remove(id).then(function (response) {
-        return response.data;
-      }).then(function (result) {
+      return Api[reduxPath].remove(id).then(removeHandler).then(function (result) {
         return mainRedux.Creators.removeSuccess(id);
       }).catch(function (error) {
         return mainRedux.Creators.removeFailure(error);
@@ -293,30 +227,3 @@ exports.default = function (options) {
     epic: epic
   };
 };
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-module.exports = require("ramda");
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-module.exports = require("redux-observable");
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-module.exports = require("rxjs/Observable");
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-module.exports = require("rxjs");
-
-/***/ })
-/******/ ]);

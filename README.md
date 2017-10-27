@@ -1,3 +1,4 @@
+
 # Overview
 
 Provides a redux-observer CRUD functions generator, to have a nice DRY code on observer files. This will increase scalability and maintainability as there's only one file to maintain.
@@ -23,71 +24,72 @@ It supports five major CRUD actions, and 3 subactions to sync data with state an
 - **Update Success**: Action to update existing data on update success
 - **Remove Success**: Action to update existing data on remove success
 
+**Note: This library is optimized to be used along reduxsauce-crud to handle CRUD actions as well with Redux**
+
 ## Installation
 
-Add the package to `bower.json` file:
-```
-"reduxobserver-crudsauce": "https://BITBUCKET_USER@bitbucket.org/kinedu/reduxobserver-crudsauce.git",
-```
-
-Run:
-```
-bower update
-```
+`yarn add https://github.com/alexhenkel/redux-observable-crud.git`
 
 ## Usage Example
 
-Import library, *Redux Observable* to add more custom observables, and all Redux files used in the observer. Then, call main method: `createCRUDObserver` with an object as parameter, this will contain all the setup: 
-```
-<script src="../../../node_modules/rxjs/bundles/Rx.js"></script>
-<script src="../../../node_modules/redux-observable/dist/redux-observable.js"></script>
-<link rel="import" href="../redux/networks-redux.html">
-<link rel="import" href="../redux/countries-redux.html">
+`src/Data/Observables/NetworksObservable.js`
+```js
+import createCRUDObservable from 'reduxobserver-crudsauce'
+import { combineEpics } from 'redux-observable'
+import { NetworksRedux } from '../Redux/NetworksRedux'
+import { CountriesRedux } from '../Redux/CountriesRedux'
 
-<script>
-  const { observers, epic } = createCRUDObserver({
-    mainRedux: NetworksRedux,
-    reduxPath: 'networks',
-    modifier: (result) => {
-      const { country } = result;
-      result.country_id = country ? country.id : null; 
-      return result;
-    },
-    create: {
-      onSuccessActions: [
-        {
-          redux: CountriesRedux,
-          filter: (country, item) => item.country === country.name,
-        },
-      ],
-    },
-    update: {
-      onSuccessActions: [
-        {
-          redux: CountriesRedux,
-        },
-      ],
-    },
-    remove: {
-      onSuccessActions: [
-        {
-          redux: CountriesRedux,
-        },
-      ],
-    },
-  });
+const networksCrudObservable = createCRUDObservable({
+  mainRedux: NetworksRedux,
+  reduxPath: 'networks',
+  create: {
+    onSuccessActions: [
+      {
+        redux: CountriesRedux,
+        filter: (country, item) => item.country.id === country.id,
+      },
+    ],
+  },
+  update: {
+    onSuccessActions: [
+      { redux: CountriesRedux },
+    ],
+  },
+  remove: {
+    onSuccessActions: [
+      { redux: CountriesRedux },
+    ],
+  },
+  dataHandlers: {
+    getOne: response => response.data.data.name,
+  }
+})
 
-  // For testing
-  const networksObservers = observers;
+// For testing
+export const networksObservers = Object.assign({}, networksCrudObservable.observers, {})
 
-  const networksEpic = epic;
-</script>
-
+export const networksEpic = combineEpics(
+  networksCrudObservable.epic,
+)
 ```
 
 In this example we are creatinig observables for `networks` collection and syncing with `countries`
 
-The function returns an object of `observables` for testing and `epic`, which can be combined to other epics to setup **Redux Middleware**
+The function returns an object of `observables` for testing and `epic`, which can be combined to other epics to setup **Redux Middleware**
+`src/Data/Observables/index.js`
+```js
+import { combineEpics, createEpicMiddleware } from 'redux-observable'
+import Api from '../Api'
+import { networksEpic } from './NetworksObservable'
+
+const rootEpic = combineEpics(
+  networksEpic,
+)
+
+export default createEpicMiddleware(rootEpic, {
+  dependencies: { Api },
+})
+```
 
 ## Options
 
@@ -100,14 +102,64 @@ Name of the state path declared on redux state. Generally, it should be the name
 `modifier` (Optional)
 Function to manipulate API result. It's used to calculate and add fields based on other fields. If it's not provided, data will not be transformed.
 
-`create.onSuccessActions update.onSuccessActions, remove.onSuccessActions` (Optional)
+`create.onSuccessActions / update.onSuccessActions / remove.onSuccessActions` (Optional)
 This will be an array of Redux options to sync data in other redux that may contain same information.
 
 `onSuccessActions.redux` (Required if past option is present)
 Redux file of the collection that needs to be synced
 
 `onSuccessActions.pathToUpdate` (Optional)
-As default, same `reduxPath` is used to look into provided redux file, but this can be overried with this option.
+As default, same `reduxPath` is used to look into provided redux file, but this can be override with this option.
 
 `create.onSuccessActions.filter` (Optional)
 Filter to decide if new object should be included to other Redux file. For example, Country is a collection that contains networks; when a network is created, we should verify that network belongs to country in order to add new item.
+
+`dataHandlers` (Optional) Callback functions to override the default data handler for every *CRUD Action*. If some is not present, the default function will be used.
+
+Default: `response => response.data.data`
+
+Usage:
+```js
+dataHandlers = {
+	get: response => response,
+	getOne: response => response,
+	create: response => response,
+	update: response => response,
+	remove: response => response,
+}
+```
+
+
+## API
+This library is optimized to work with **Axios** and in the following format to match all the *CRUD Actions*
+```js
+import { create } from 'axios'
+
+const baseURL = 'http://api.demo.dev/'
+
+const api = create({
+  baseURL,
+  timeout: 10000,
+})
+
+const getNetworks = () => api.get('backend/networks')
+const getNetwork = id => api.get(`backend/networks/${id}`)
+const updateNetwork = (id, data) => api.patch(`backend/networks/${id}`, data)
+const createNetwork = data => api.post('backend/networks', data)
+const removeNetwork = id => api.delete(`backend/networks/${id}`)
+
+/**
+ * Key should match `reduxPath` in Observable file, and then each key
+ * the following keys should be included: `get`, `getOne`, `create`, 
+ * `update`
+ */
+export default {
+  networks: {
+    get: getNetworks,
+    getOne: getNetwork,        
+    create: createNetwork,
+    update: updateNetwork,
+    remove: removeNetwork,
+  },
+}
+```
