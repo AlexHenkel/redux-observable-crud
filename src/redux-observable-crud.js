@@ -9,15 +9,14 @@ import 'rxjs';
  * @return {Object} On object with pure observables and epic
  */
 export default options => {
-  const backUpModifier = result => result;
-  const generalDataHandler = response => response.data.data;
   const {
     mainRedux,
     reduxPath,
     create = {},
     update = {},
     remove = {},
-    modifier = backUpModifier,
+    modifier = result => result,
+    generalDataHandler = response => response.data.data,
     dataHandlers = {},
   } = options;
 
@@ -32,13 +31,13 @@ export default options => {
   const getEpic = (action$, store, { Api }) => 
     action$
       .ofType(mainRedux.Types.getRequest)
-      .mergeMap(({ force }) => {
+      .mergeMap(({ data, force }) => {
         const items = store.getState()[reduxPath].get;
         // Verify if is not the same that is stored
         if (!force && !items.error && items.results.length) {
           return Promise.resolve(mainRedux.Creators.getSuccess(items.results))
         }
-        return Api[reduxPath].get()
+        return Api[reduxPath].get(data)
           .then(getHandler)
           .then(results => mainRedux.Creators.getSuccess(results))
           .catch(error => mainRedux.Creators.getFailure(error))

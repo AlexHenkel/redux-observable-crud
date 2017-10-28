@@ -22,12 +22,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @return {Object} On object with pure observables and epic
  */
 exports.default = function (options) {
-  var backUpModifier = function backUpModifier(result) {
-    return result;
-  };
-  var generalDataHandler = function generalDataHandler(response) {
-    return response.data.data;
-  };
   var mainRedux = options.mainRedux,
       reduxPath = options.reduxPath,
       _options$create = options.create,
@@ -37,7 +31,13 @@ exports.default = function (options) {
       _options$remove = options.remove,
       remove = _options$remove === undefined ? {} : _options$remove,
       _options$modifier = options.modifier,
-      modifier = _options$modifier === undefined ? backUpModifier : _options$modifier,
+      modifier = _options$modifier === undefined ? function (result) {
+    return result;
+  } : _options$modifier,
+      _options$generalDataH = options.generalDataHandler,
+      generalDataHandler = _options$generalDataH === undefined ? function (response) {
+    return response.data.data;
+  } : _options$generalDataH,
       _options$dataHandlers = options.dataHandlers,
       dataHandlers = _options$dataHandlers === undefined ? {} : _options$dataHandlers;
   var _dataHandlers$get = dataHandlers.get,
@@ -55,14 +55,15 @@ exports.default = function (options) {
   var getEpic = function getEpic(action$, store, _ref) {
     var Api = _ref.Api;
     return action$.ofType(mainRedux.Types.getRequest).mergeMap(function (_ref2) {
-      var force = _ref2.force;
+      var data = _ref2.data,
+          force = _ref2.force;
 
       var items = store.getState()[reduxPath].get;
       // Verify if is not the same that is stored
       if (!force && !items.error && items.results.length) {
         return Promise.resolve(mainRedux.Creators.getSuccess(items.results));
       }
-      return Api[reduxPath].get().then(getHandler).then(function (results) {
+      return Api[reduxPath].get(data).then(getHandler).then(function (results) {
         return mainRedux.Creators.getSuccess(results);
       }).catch(function (error) {
         return mainRedux.Creators.getFailure(error);
