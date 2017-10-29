@@ -46,13 +46,13 @@ export default options => {
   const getOneEpic = (action$, store, { Api }) => 
     action$
       .ofType(mainRedux.Types.getOneRequest)
-      .mergeMap(({ id, force }) => {
+      .mergeMap(({ id, force, data }) => {
         const item = store.getState()[reduxPath].getOne;
         // Verify if is not the same that is stored
         if (!force && !item.error && item.id == id) {
           return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item))
         }
-        return Api[reduxPath].getOne(id)
+        return Api[reduxPath].getOne(id, data)
           .then(getOneHandler)
           .then(result => mainRedux.Creators.getOneSuccess(id, modifier(result)))
           .catch(error => mainRedux.Creators.getOneFailure(error))
@@ -119,8 +119,8 @@ export default options => {
       
   const removeEpic = (action$, store, { Api }) =>
     action$.ofType(mainRedux.Types.removeRequest)
-      .mergeMap(({ id }) => (
-        Api[reduxPath].remove(id)
+      .mergeMap(({ id, data }) => (
+        Api[reduxPath].remove(id, data)
           .then(removeHandler)
           .then(result => mainRedux.Creators.removeSuccess(id))
           .catch(error => mainRedux.Creators.removeFailure(error))

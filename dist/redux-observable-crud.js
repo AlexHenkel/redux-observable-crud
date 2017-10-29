@@ -75,14 +75,15 @@ exports.default = function (options) {
     var Api = _ref3.Api;
     return action$.ofType(mainRedux.Types.getOneRequest).mergeMap(function (_ref4) {
       var id = _ref4.id,
-          force = _ref4.force;
+          force = _ref4.force,
+          data = _ref4.data;
 
       var item = store.getState()[reduxPath].getOne;
       // Verify if is not the same that is stored
       if (!force && !item.error && item.id == id) {
         return Promise.resolve(mainRedux.Creators.getOneSuccess(id, item));
       }
-      return Api[reduxPath].getOne(id).then(getOneHandler).then(function (result) {
+      return Api[reduxPath].getOne(id, data).then(getOneHandler).then(function (result) {
         return mainRedux.Creators.getOneSuccess(id, modifier(result));
       }).catch(function (error) {
         return mainRedux.Creators.getOneFailure(error);
@@ -182,8 +183,9 @@ exports.default = function (options) {
   var removeEpic = function removeEpic(action$, store, _ref12) {
     var Api = _ref12.Api;
     return action$.ofType(mainRedux.Types.removeRequest).mergeMap(function (_ref13) {
-      var id = _ref13.id;
-      return Api[reduxPath].remove(id).then(removeHandler).then(function (result) {
+      var id = _ref13.id,
+          data = _ref13.data;
+      return Api[reduxPath].remove(id, data).then(removeHandler).then(function (result) {
         return mainRedux.Creators.removeSuccess(id);
       }).catch(function (error) {
         return mainRedux.Creators.removeFailure(error);
